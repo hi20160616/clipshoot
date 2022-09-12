@@ -19,6 +19,7 @@ func readTarget() ([]string, error) {
 		return nil, err
 	}
 	c := string(f)
+	// strClipboard = strings.ReplaceAll(strClipboard, "\\", "＼")
 	re := regexp.MustCompile(`.*?(` + strClipboard + `).*?\|(.*)`)
 	ls := re.FindAllStringSubmatch(c, -1)
 	for _, v1 := range ls {
@@ -45,14 +46,12 @@ func action() error {
 }
 
 func listen() error {
-	text, err := clipboard.ReadAll()
-	if err != nil {
-		return err
-	}
+	// TODO: treat err
+	text, _ := clipboard.ReadAll()
 	if strClipboard != text {
 		strClipboard = text
-		fmt.Printf("Clipboard: %s\n", strClipboard)
 		semo <- struct{}{}
+		fmt.Printf("Clipboard: %s\n", strClipboard)
 	}
 	return nil
 }
