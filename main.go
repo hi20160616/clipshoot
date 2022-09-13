@@ -7,8 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 
-	// "golang.design/x/clipboard"
-	"github.com/zyedidia/clipper"
+	"golang.design/x/clipboard"
 )
 
 var semo = make(chan struct{}, 1)
@@ -50,17 +49,8 @@ func action() error {
 }
 
 func listen() error {
-	// raw := clipboard.Read(clipboard.FmtText)
-	// text := string(raw)
-	clip, err := clipper.GetClipboard(clipper.Clipboards...)
-	if err != nil {
-		return err
-	}
-	data, err := clip.ReadAll(clipper.RegClipboard)
-	if err != nil {
-		return err
-	}
-	text := string(data)
+	raw := clipboard.Read(clipboard.FmtText)
+	text := string(raw)
 
 	if strClipboard != text {
 		strClipboard = text
@@ -72,10 +62,10 @@ func listen() error {
 
 func main() {
 	// Init returns an error if the package is not ready for use.
-	// err := clipboard.Init()
-	// if err != nil {
-	//         panic(err)
-	// }
+	err := clipboard.Init()
+	if err != nil {
+		panic(err)
+	}
 
 	if err := action(); err != nil {
 		log.Fatal(err)
