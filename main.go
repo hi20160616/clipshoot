@@ -6,25 +6,56 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
-	"golang.design/x/clipboard"
+	"github.com/atotto/clipboard"
 )
 
 var semo = make(chan struct{}, 1)
 var strClipboard string
+var Password = "clipshoot"
 
 func readTarget() ([]string, error) {
+	rp := strings.NewReplacer(
+		"'", "＇",
+		"\"", "“",
+		"『", "“",
+		"』", "”",
+		"「", "“",
+		"」", "”",
+		",", "，",
+		".", "。",
+		";", "；",
+		":", "：",
+		"?", "？",
+		"!", "！",
+		"(", "）",
+		")", "）",
+		"[", "【",
+		"]", "】",
+		"{", "『",
+		"}", "』",
+		"+", "＋",
+		"-", "－",
+		"*", "＊",
+		"\\", "＼",
+		"/", "／",
+		"<", "《",
+		">", "》",
+		" ", "",
+		"　", "",
+		"%", "％",
+		"#", "＃",
+		"$", "＄",
+		"&", "＆",
+	)
+	strClipboard = rp.Replace(strClipboard)
+	re := regexp.MustCompile(`.*?(` + strClipboard + `).*?\|(.*)`)
 	f, err := os.ReadFile(filepath.Join(".", "target.txt"))
 	if err != nil {
 		return nil, err
 	}
-	c := string(f)
-	if strClipboard == "" {
-		return nil, nil
-	}
-	// strClipboard = strings.ReplaceAll(strClipboard, "\\", "＼")
-	re := regexp.MustCompile(`.*?(` + strClipboard + `).*?\|(.*)`)
-	ls := re.FindAllStringSubmatch(c, -1)
+	ls := re.FindAllStringSubmatch(string(f), -1)
 	for _, v1 := range ls {
 		for i, v2 := range v1 {
 			if i == 2 {
@@ -35,7 +66,13 @@ func readTarget() ([]string, error) {
 	return nil, nil
 }
 
+func verify() bool {
+	text, _ := clipboard.ReadAll()
+	return text == Password
+}
+
 func action() error {
+	clipboard.WriteAll("") // init clipboard
 	for {
 		if err := listen(); err != nil {
 			return err
@@ -49,9 +86,8 @@ func action() error {
 }
 
 func listen() error {
-	raw := clipboard.Read(clipboard.FmtText)
-	text := string(raw)
-
+	// TODO: treat err
+	text, _ := clipboard.ReadAll()
 	if strClipboard != text {
 		strClipboard = text
 		semo <- struct{}{}
@@ -61,12 +97,9 @@ func listen() error {
 }
 
 func main() {
-	// Init returns an error if the package is not ready for use.
-	err := clipboard.Init()
-	if err != nil {
-		panic(err)
+	if !verify() {
+		return
 	}
-
 	if err := action(); err != nil {
 		log.Fatal(err)
 	}
