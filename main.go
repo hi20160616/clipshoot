@@ -18,9 +18,9 @@ var Password = "clipshoot"
 func readTarget() ([]string, error) {
 	rp := strings.NewReplacer(
 		"'", "＇",
-		"\"", "“",
+		"\"", "＂",
 		",", "，",
-		".", "。",
+		".", "．",
 		";", "；",
 		":", "：",
 		"?", "？",
@@ -46,6 +46,7 @@ func readTarget() ([]string, error) {
 		"&", "＆",
 		"=", "＝",
 		"_", "＿",
+		"^", "＾",
 	)
 	x := rp.Replace(strClipboard)
 	re := regexp.MustCompile(`.*?(` + x + `).*?\|(.*)`)
