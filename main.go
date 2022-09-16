@@ -6,21 +6,56 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/atotto/clipboard"
 )
 
 var semo = make(chan struct{}, 1)
 var strClipboard string
+var Password = "clipshoot"
 
 func readTarget() ([]string, error) {
+	rp := strings.NewReplacer(
+		"'", "＇",
+		"\"", "“",
+		"『", "“",
+		"』", "”",
+		"「", "“",
+		"」", "”",
+		",", "，",
+		".", "。",
+		";", "；",
+		":", "：",
+		"?", "？",
+		"!", "！",
+		"(", "）",
+		")", "）",
+		"[", "【",
+		"]", "】",
+		"{", "『",
+		"}", "』",
+		"+", "＋",
+		"-", "－",
+		"*", "＊",
+		"\\", "＼",
+		"/", "／",
+		"<", "《",
+		">", "》",
+		" ", "",
+		"　", "",
+		"%", "％",
+		"#", "＃",
+		"$", "＄",
+		"&", "＆",
+	)
+	strClipboard = rp.Replace(strClipboard)
+	re := regexp.MustCompile(`.*?(` + strClipboard + `).*?\|(.*)`)
 	f, err := os.ReadFile(filepath.Join(".", "target.txt"))
 	if err != nil {
 		return nil, err
 	}
-	c := string(f)
-	re := regexp.MustCompile(`.*?(` + strClipboard + `).*?\|(.*)`)
-	ls := re.FindAllStringSubmatch(c, -1)
+	ls := re.FindAllStringSubmatch(string(f), -1)
 	for _, v1 := range ls {
 		for i, v2 := range v1 {
 			if i == 2 {
@@ -31,7 +66,13 @@ func readTarget() ([]string, error) {
 	return nil, nil
 }
 
+func verify() bool {
+	text, _ := clipboard.ReadAll()
+	return text == Password
+}
+
 func action() error {
+	clipboard.WriteAll("") // init clipboard
 	for {
 		if err := listen(); err != nil {
 			return err
@@ -45,19 +86,20 @@ func action() error {
 }
 
 func listen() error {
-	text, err := clipboard.ReadAll()
-	if err != nil {
-		return err
-	}
+	// TODO: treat err
+	text, _ := clipboard.ReadAll()
 	if strClipboard != text {
 		strClipboard = text
-		fmt.Printf("Clipboard: %s\n", strClipboard)
 		semo <- struct{}{}
+		fmt.Printf("\n\nClipboard: %s\n", strClipboard)
 	}
 	return nil
 }
 
 func main() {
+	if !verify() {
+		return
+	}
 	if err := action(); err != nil {
 		log.Fatal(err)
 	}
