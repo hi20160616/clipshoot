@@ -49,8 +49,8 @@ func readTarget() ([]string, error) {
 		"$", "＄",
 		"&", "＆",
 	)
-	strClipboard = rp.Replace(strClipboard)
-	re := regexp.MustCompile(`.*?(` + strClipboard + `).*?\|(.*)`)
+	x := rp.Replace(strClipboard)
+	re := regexp.MustCompile(`.*?(` + x + `).*?\|(.*)`)
 	f, err := os.ReadFile(filepath.Join(".", "target.txt"))
 	if err != nil {
 		return nil, err
