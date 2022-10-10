@@ -19,6 +19,8 @@ func readTarget() ([]string, error) {
 	rp := strings.NewReplacer(
 		"'", "＇",
 		"\"", "＂",
+		"“", "＂",
+		"”", "＂",
 		",", "，",
 		".", "．",
 		";", "；",
